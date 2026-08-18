@@ -6,7 +6,8 @@ const createUser = Joi.object().keys({
   number: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  recaptchaToken: Joi.string().required()
+  recaptchaToken: Joi.string().required(),
+  role: Joi.string().optional()
 });
 
 const fatchUser = Joi.object().keys({

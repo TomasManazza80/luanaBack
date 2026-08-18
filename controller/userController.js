@@ -59,11 +59,10 @@ const createUser = async (req, res) => {
     if (user && user.error) {
       return res.status(user.status).send(user.error);
     }
-    
     if (!user) {
-      res.sendStatus(401);
+      return res.status(401).json({ message: "No se pudo crear el usuario" });
     } else {
-      res.sendStatus(200);
+      return res.status(200).json({ message: "OK" });
     }
 
   } catch (error) {
@@ -95,9 +94,9 @@ const updateUser = async (req, res) => {
     } else {
       const response = await userService.updateUser({ id: req.params.id, ...value });
       if (!response) {
-        res.sendStatus(404); // Usuario no encontrado
+        res.status(404).json({ message: "Usuario no encontrado" });
       } else {
-        res.sendStatus(200); // Usuario actualizado con éxito
+        res.status(200).json({ message: "Usuario actualizado con éxito" });
       }
     }
   } catch (error) {
