@@ -109,7 +109,7 @@ export function authenticateToken(req, res, next) {
 
     try {
         // eslint-disable-next-line no-undef
-        const payload = jwt.verify(token, process.env.SECRET_KEY);
+        const payload = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_should_be_long_and_complex_in_env');
         req.user = payload;
         next();
     } catch (error) {

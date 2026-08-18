@@ -93,6 +93,33 @@ app.use('/api/hero-slider', heroSliderRouter);
 app.use('/api/pronunciation', pronunciationRouter);
 app.use('/api/home-content', homeContentRouter);
 app.use('/home-content', homeContentRouter);
+// Kinesio Routes (ES Module)
+let kinesioRouter = null;
+let kinesioRouterError = null;
+
+// Initialize Kinesio DB connection and routes
+Promise.all([
+    import('./server/database.js').then(db => db.AppDataSource.initialize()),
+    import('./server/routes/kinesioRoutes.js')
+])
+    .then(([db, module]) => {
+        kinesioRouter = module.default || module;
+        console.log("Kinesio DB and routes loaded successfully.");
+    })
+    .catch(err => {
+        kinesioRouterError = err;
+        console.error("Error loading kinesio module:", err);
+    });
+
+app.use('/api/kinesio', (req, res, next) => {
+    if (kinesioRouter) {
+        return kinesioRouter(req, res, next);
+    }
+    if (kinesioRouterError) {
+        return next(new Error("Kinesio routes error: " + kinesioRouterError.message + "\n" + kinesioRouterError.stack));
+    }
+    next(new Error("Kinesio routes not loaded yet."));
+});
 
 // Catch 404
 app.use((req, res, next) => {

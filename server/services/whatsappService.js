@@ -1,7 +1,8 @@
 import { makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import { AppDataSource } from '../database.js';
-import { io } from '../server.js';
+let io = null;
+export const setSocketIo = (socketIo) => { io = socketIo; };
 import fs from 'fs';
 import path from 'path';
 
