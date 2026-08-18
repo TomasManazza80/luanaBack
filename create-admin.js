@@ -4,8 +4,8 @@ const { authHash } = require('./services/auth/auth');
 
 async function run() {
     const email = 'tomas.manazza8@gmail.com';
-    const password = '123456';
-    const name = 'Admin Tomas';
+    const password = '155332332Tomas';
+    const name = 'Tomas Manazza';
     const number = '0000000000';
     const role = 'admin';
     
@@ -14,15 +14,17 @@ async function run() {
         if (user) {
             console.log("User already exists. Updating role to admin and resetting password...");
             const EncyPass = await authHash(password);
-            await user.update({ role: 'admin', password: EncyPass });
+            await user.update({ role: 'admin', password: EncyPass, name });
             console.log("Updated user successfully!");
         } else {
             console.log("Creating new user...");
-            await createUser({ name, email, password, number, role });
-            console.log("Created user successfully!");
+            const result = await createUser({ name, email, password, number, role });
+            console.log("Created user result:", result);
         }
     } catch (e) {
         console.error("Error creating/updating user:", e);
+    } finally {
+        process.exit(0);
     }
 }
 run();
