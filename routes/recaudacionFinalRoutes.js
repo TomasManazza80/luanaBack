@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import recaudacionFinalController from '../controller/recaudacionFinalController.js';
+const express = require('express');
+const recaudacionFinalController = require('../controller/recaudacionFinalController.js');
 
-const router = Router();
+const router = express.Router();
 
 // --- Recaudacion Final Routes ---
 
@@ -20,4 +20,4 @@ router.put('/:id', recaudacionFinalController.updateRecaudacion);
 // DELETE /api/recaudacion/:id (Delete/Soft Delete)
 router.delete('/:id', recaudacionFinalController.deleteRecaudacion);
 
-export default router;
+module.exports = router;

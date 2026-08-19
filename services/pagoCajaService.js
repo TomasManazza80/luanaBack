@@ -1,7 +1,6 @@
-// Importamos la referencia directa al constructor 'PagoProducto'
-import { PagoProducto } from "../models/index.js"; // Se asume que '../models/index.js' usa export named
-import productService from "./productService.js";
-import { Op } from "sequelize";
+const { PagoProducto } = require("../models/index.js");
+const productService = require("./productService.js");
+const { Op } = require("sequelize");
 const pagoService = {
 
     /**
@@ -127,4 +126,4 @@ const pagoService = {
     },
 };
 
-export default pagoService;
+module.exports = pagoService;

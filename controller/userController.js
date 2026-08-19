@@ -42,9 +42,6 @@ const createUser = async (req, res) => {
     if (!userdata || Object.keys(userdata).length === 0) {
       return res.status(400).send("Request body is empty or missing.");
     }
-    // FIX: Se agrega un token falso para que pase la validación que aún lo requiere.
-    // La solución ideal es remover `recaptchaToken` del esquema en `validation/AllValidation.js`.
-    userdata.recaptchaToken = 'dummy-token-for-validation';
 
     const { value, error } = AllValidation.createUser.validate(userdata);
     if (error !== undefined) {
@@ -52,8 +49,7 @@ const createUser = async (req, res) => {
       return res.status(400).send(error.details[0].message);
     }
 
-    // Se elimina el token de recaptcha para que no intente guardarlo en la base de datos.
-    delete value.recaptchaToken;
+    if (value.recaptchaToken) delete value.recaptchaToken;
 
     const user = await userService.createUser(value);
     if (user && user.error) {

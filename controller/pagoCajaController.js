@@ -1,4 +1,4 @@
-import pagoService from '../services/pagoCajaService.js';
+const pagoService = require('../services/pagoCajaService.js');
 
 const pagoController = {
 
@@ -115,4 +115,4 @@ const pagoController = {
 
 };
 
-export default pagoController;
+module.exports = pagoController;

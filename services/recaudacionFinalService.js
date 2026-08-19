@@ -1,4 +1,4 @@
-import RecaudacionFinal from '../models/recaudacionFinal/recaudacionFinal.js'; 
+const RecaudacionFinal = require('../models/recaudacionFinal/recaudacionFinal.js'); 
 
 const recaudacionFinalService = {
 
@@ -93,4 +93,4 @@ const recaudacionFinalService = {
     },
 };
 
-export default recaudacionFinalService;
+module.exports = recaudacionFinalService;

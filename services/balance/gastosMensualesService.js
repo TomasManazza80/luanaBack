@@ -1,5 +1,5 @@
-import { model } from "../../models/index.js";
-import * as whatsappService from "../QrService/QrService.js";
+const { model } = require("../../models/index.js");
+const whatsappService = require("../QrService/QrService.js");
 
 const monthlyExpenseService = {
     async createSingleExpense(expense) {
@@ -25,7 +25,7 @@ const monthlyExpenseService = {
     },
     async deleteExpense(id) {
         const expense = await model.monthlyExpense.findByPk(id);
-        if (!expense) throw new Error('No encontrado');
+        if (!expense) throw new Error('Gasto no encontrado');
         return await expense.destroy();
     },
     async notifyExpense(id, phoneNumber) {
@@ -49,4 +49,4 @@ const monthlyExpenseService = {
     }
 };
 
-export default monthlyExpenseService;
+module.exports = monthlyExpenseService;

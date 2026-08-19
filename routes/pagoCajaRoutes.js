@@ -1,5 +1,5 @@
-import express from 'express';
-import pagoController from '../controller/pagoCajaController.js';
+const express = require('express');
+const pagoController = require('../controller/pagoCajaController.js');
 
 const router = express.Router();
 
@@ -25,4 +25,4 @@ router.put('/pagos/:id', pagoController.updatePago);
 // Ejemplo: DELETE /api/pagos/123
 router.delete('/pagos/:id', pagoController.deletePago);
 
-export default router;
+module.exports = router;

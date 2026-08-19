@@ -1,5 +1,5 @@
-import { RecaudacionFinal, ProductBought, PagoProducto } from '../models/index.js';
-import { Op } from 'sequelize';
+const { RecaudacionFinal, ProductBought, PagoProducto } = require('../models/index.js');
+const { Op } = require('sequelize');
 
 const reportController = {
     async getNetProfit(req, res) {
@@ -142,4 +142,4 @@ const reportController = {
     }
 };
 
-export default reportController;
+module.exports = reportController;

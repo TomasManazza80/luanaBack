@@ -6,7 +6,7 @@ const createUser = Joi.object().keys({
   number: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  recaptchaToken: Joi.string().required(),
+  recaptchaToken: Joi.string().optional(),
   role: Joi.string().optional()
 });
 
@@ -16,12 +16,12 @@ const fatchUser = Joi.object().keys({
 });
 
 const updateUser = Joi.object().keys({
-  id: Joi.number().optional(), // Este campo será opcional ya que se pasará como parámetro en la ruta
+  id: Joi.number().optional(),
   name: Joi.string().required(),
   number: Joi.string().required(),
   email: Joi.string().email().required(),
-  password: Joi.string().required(),
-  role: Joi.string().valid('admin', 'user', 'guest', 'tecnico', 'vendedor').required()
+  password: Joi.string().optional(),
+  role: Joi.string().valid('admin', 'user', 'guest', 'tecnico', 'vendedor').optional()
 });
 
 const updateUserRole = Joi.object().keys({

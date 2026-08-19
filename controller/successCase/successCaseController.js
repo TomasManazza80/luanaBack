@@ -1,4 +1,4 @@
-import successCaseService from '../../services/successCase/successCaseService.js';
+const successCaseService = require('../../services/successCase/successCaseService.js');
 
 const successCaseController = {
     async create(req, res) {
@@ -29,4 +29,4 @@ const successCaseController = {
     }
 };
 
-export default successCaseController;
+module.exports = successCaseController;

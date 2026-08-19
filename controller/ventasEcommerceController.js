@@ -1,6 +1,6 @@
-import { Dispatch, GlobalConfig, Client } from '../models/index.js';
-import { Op } from 'sequelize';
-import productService from '../services/productService.js';
+const { Dispatch, GlobalConfig, Client } = require('../models/index.js');
+const { Op } = require('sequelize');
+const productService = require('../services/productService.js');
 
 
 
@@ -230,4 +230,4 @@ const ventasEcommerceController = {
     }
 };
 
-export default ventasEcommerceController;
+module.exports = ventasEcommerceController;

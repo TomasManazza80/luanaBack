@@ -1,6 +1,6 @@
-import db from "../models/index.js";
+const db = require("../models/index.js");
 const { encargo } = db;
-import { Op, Sequelize } from "sequelize";
+const { Op, Sequelize } = require("sequelize");
 
 const encargosService = {
     async create(data) {
@@ -97,4 +97,4 @@ const encargosService = {
     }
 };
 
-export default encargosService;
+module.exports = encargosService;

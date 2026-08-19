@@ -1,6 +1,6 @@
-import express from 'express';
-import ventasEcommerceController from '../../controller/ventasEcommerceController.js';
-import gastosController from '../../controller/gastosController.js';
+const express = require('express');
+const ventasEcommerceController = require('../../controller/ventasEcommerceController.js');
+const gastosController = require('../../controller/gastosController.js');
 
 const router = express.Router();
 
@@ -21,4 +21,4 @@ router.get('/shipping-rates', gastosController.getShippingRates);
 router.get('/bank-rates', gastosController.getBankRates);
 router.get('/global-configs', gastosController.getGlobalConfigs);
 
-export default router;
+module.exports = router;

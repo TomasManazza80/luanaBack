@@ -1,5 +1,5 @@
-import service from '../services/encargosService.js';
-import * as whatsappService from '../services/QrService/QrService.js';
+const service = require('../services/encargosService.js');
+const whatsappService = require('../services/QrService/QrService.js');
 
 const reparacionesController = {
     async create(req, res) {
@@ -97,4 +97,4 @@ const reparacionesController = {
     }
 };
 
-export default reparacionesController;
+module.exports = reparacionesController;

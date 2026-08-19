@@ -1,5 +1,5 @@
-import express from 'express';
-import pronunciationController from '../controller/pronunciationController.js';
+const express = require('express');
+const pronunciationController = require('../controller/pronunciationController.js');
 
 const router = express.Router();
 
@@ -21,4 +21,4 @@ router.post("/generate-tasks", pronunciationController.generateTasks);
 // Leaderboard route
 router.get("/leaderboard", pronunciationController.getLeaderboard);
 
-export default router;
+module.exports = router;

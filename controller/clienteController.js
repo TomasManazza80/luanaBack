@@ -1,4 +1,4 @@
-import { Client } from '../models/index.js';
+const { Client } = require('../models/index.js');
 
 const clienteController = {
 
@@ -29,4 +29,4 @@ const clienteController = {
     }
 };
 
-export default clienteController;
+module.exports = clienteController;

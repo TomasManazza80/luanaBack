@@ -1,5 +1,5 @@
-import express from 'express';
-import ImageKit from 'imagekit';
+const express = require('express');
+const ImageKit = require('imagekit');
 
 const router = express.Router();
 
@@ -40,4 +40,4 @@ router.get('/', (req, res) => {
     }
 });
 
-export default router;
+module.exports = router;

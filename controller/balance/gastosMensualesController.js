@@ -1,4 +1,4 @@
-import monthlyExpenseService from '../../services/balance/gastosMensualesService.js';
+const monthlyExpenseService = require('../../services/balance/gastosMensualesService.js');
 
 const monthlyExpenseController = {
     async createExpense(req, res) {
@@ -62,4 +62,4 @@ const monthlyExpenseController = {
     }
 };
 
-export default monthlyExpenseController;
+module.exports = monthlyExpenseController;

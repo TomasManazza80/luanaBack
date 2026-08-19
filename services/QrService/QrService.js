@@ -1,15 +1,11 @@
-import * as baileys from '@whiskeysockets/baileys';
+const baileys = require('@whiskeysockets/baileys');
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion } = baileys;
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-import pino from 'pino';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const pino = require('pino');
+const fs = require('fs/promises');
+const path = require('path');
 
 let sock = null;
 let ultimoQR = null;
@@ -42,7 +38,7 @@ const cleanupAuth = async () => {
     }
 };
 
-export const init = async () => {
+const init = async () => {
     if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
         reconnectTimeout = null;
@@ -190,7 +186,7 @@ export const init = async () => {
     }
 };
 
-export const getStatus = () => ({
+const getStatus = () => ({
     qr: ultimoQR,
     status: estado,
     qrAttempts: qrAttempts,
@@ -201,7 +197,7 @@ export const getStatus = () => ({
     timestamp: new Date().toISOString()
 });
 
-export const restart = async () => {
+const restart = async () => {
     console.log("♻️ [WhatsApp] Reinicio manual solicitado");
 
     if (reconnectTimeout) {
@@ -246,7 +242,7 @@ export const restart = async () => {
     }
 };
 
-export const disconnect = async () => {
+const disconnect = async () => {
     if (sock) {
         try {
             console.log("🔌 [WhatsApp] Desconexión manual");
@@ -263,9 +259,9 @@ export const disconnect = async () => {
     }
 };
 
-export const getSocket = () => sock;
+const getSocket = () => sock;
 
-export const sendMessage = async (number, message) => {
+const sendMessage = async (number, message) => {
     if (!sock || !isConnected) {
         throw new Error("WHATSAPP_NOT_CONNECTED");
     }
@@ -287,6 +283,16 @@ export const sendMessage = async (number, message) => {
     return { success: true };
 };
 
-export const forceCleanup = async () => {
+const forceCleanup = async () => {
     return await cleanupAuth();
+};
+
+module.exports = {
+    init,
+    getStatus,
+    restart,
+    disconnect,
+    getSocket,
+    sendMessage,
+    forceCleanup
 };

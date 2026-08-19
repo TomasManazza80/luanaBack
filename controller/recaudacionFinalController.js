@@ -1,4 +1,4 @@
-import recaudacionFinalService from '../services/recaudacionFinalService.js';
+const recaudacionFinalService = require('../services/recaudacionFinalService.js');
 
 const recaudacionFinalController = {
 
@@ -116,4 +116,4 @@ const recaudacionFinalController = {
     }
 };
 
-export default recaudacionFinalController;
+module.exports = recaudacionFinalController;

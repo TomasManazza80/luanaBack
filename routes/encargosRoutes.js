@@ -1,6 +1,6 @@
-import express from 'express';
+const express = require('express');
 const router = express.Router();
-import controller from '../controller/encargosController.js';
+const controller = require('../controller/encargosController.js');
 
 router.get('/', controller.getAll);
 router.post('/', controller.create);
@@ -9,4 +9,4 @@ router.patch('/:id/status', controller.updateStatus);
 router.post('/:id/notify', controller.notifyClient);
 router.delete('/:id', controller.delete);
 
-export default router;
+module.exports = router;

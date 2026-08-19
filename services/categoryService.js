@@ -1,4 +1,4 @@
-import { Category } from "../models/index.js";
+const { Category } = require("../models/index.js");
 
 const categoryService = {
     async getAllCategories() {
@@ -47,4 +47,4 @@ const categoryService = {
     },
 };
 
-export default categoryService;
+module.exports = categoryService;

@@ -1,5 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import models from "../models/index.js";
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { model: models } = require("../models/index.js");
 
 const { PronunciationActivity, PronunciationTask, StudentAttempt } = models;
 
@@ -425,7 +425,7 @@ const cloneActivity = async (req, res) => {
     }
 };
 
-export default {
+module.exports = {
   createActivity,
   getActivities,
   createTask,

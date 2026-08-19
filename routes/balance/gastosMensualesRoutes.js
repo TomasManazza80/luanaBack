@@ -1,6 +1,6 @@
-import express from 'express';
+const express = require('express');
 const router = express.Router();
-import monthlyExpenseController from '../../controller/balance/gastosMensualesController.js';
+const monthlyExpenseController = require('../../controller/balance/gastosMensualesController.js');
 
 router.post('/crearGastoMensual', monthlyExpenseController.createExpense);
 router.get('/obtenerGastosMensuales', monthlyExpenseController.getAllExpenses);
@@ -10,4 +10,4 @@ router.post('/notificar/:id', monthlyExpenseController.notifyExpense);
 router.delete('/eliminarGastoMensual/:id', monthlyExpenseController.deleteExpense);
 router.put('/resetGastos', monthlyExpenseController.resetExpenses);
 
-export default router;
+module.exports = router;

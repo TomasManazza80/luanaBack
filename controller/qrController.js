@@ -1,4 +1,4 @@
-const whatsappService = require('../services/qrService');
+const whatsappService = require('../services/QrService/QrService');
 
 let customTemplate = "Hola {paciente}, te recordamos tu turno para {servicio} el día {fecha} a las {hora} hs.";
 
