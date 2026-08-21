@@ -18,7 +18,9 @@ export const getAvailability = async (req, res) => {
 
 export const saveAvailability = async (req, res) => {
     try {
-        const professionalId = req.user.userId;
+        const professionalId = (req.user.role === 'ADMIN' && req.body.professional_id) 
+                               ? parseInt(req.body.professional_id) 
+                               : req.user.userId;
         const { schedules, exceptions } = req.body; // schedules: array of {day_of_week, start_time, end_time}. exceptions: array of {exception_date, exception_title}
 
         const availabilityRepo = AppDataSource.getRepository('Availability');

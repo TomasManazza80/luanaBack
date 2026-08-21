@@ -91,24 +91,29 @@ app.use('/', providerRouter);
 app.use('/success-cases', successCasesRouter);
 app.use('/api/hero-slider', heroSliderRouter);
 app.use('/api/pronunciation', pronunciationRouter);
-app.use('/api/home-content', homeContentRouter);
 app.use('/home-content', homeContentRouter);
 // Kinesio Routes (ES Module)
 let kinesioRouter = null;
 let kinesioRouterError = null;
 
+let publicRouterEsm = null;
+let publicRouterError = null;
+
 // Initialize Kinesio DB connection and routes
 Promise.all([
     import('./server/database.js').then(db => db.AppDataSource.initialize()),
-    import('./server/routes/kinesioRoutes.js')
+    import('./server/routes/kinesioRoutes.js'),
+    import('./server/routes/publicRoutes.js')
 ])
-    .then(([db, module]) => {
-        kinesioRouter = module.default || module;
+    .then(([db, kinesioModule, publicModule]) => {
+        kinesioRouter = kinesioModule.default || kinesioModule;
+        publicRouterEsm = publicModule.default || publicModule;
         console.log("Kinesio DB and routes loaded successfully.");
     })
     .catch(err => {
         kinesioRouterError = err;
-        console.error("Error loading kinesio module:", err);
+        publicRouterError = err;
+        console.error("Error loading kinesio/public modules:", err);
     });
 
 app.use('/api/kinesio', (req, res, next) => {
@@ -119,6 +124,16 @@ app.use('/api/kinesio', (req, res, next) => {
         return next(new Error("Kinesio routes error: " + kinesioRouterError.message + "\n" + kinesioRouterError.stack));
     }
     next(new Error("Kinesio routes not loaded yet."));
+});
+
+app.use('/api/public', (req, res, next) => {
+    if (publicRouterEsm) {
+        return publicRouterEsm(req, res, next);
+    }
+    if (publicRouterError) {
+        return next(new Error("Public routes error: " + publicRouterError.message + "\n" + publicRouterError.stack));
+    }
+    next(new Error("Public routes not loaded yet."));
 });
 
 // Catch 404

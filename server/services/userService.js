@@ -35,7 +35,7 @@ export async function getUserById(id) {
 }
 
 export async function createUser(userData) {
-    const { email, password, firstName, lastName, role, specialty } = userData;
+    const { email, password, firstName, lastName, role, specialty, is_public } = userData;
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
     
@@ -52,7 +52,8 @@ export async function createUser(userData) {
         password: hashedPassword,
         name: finalName ? finalName.trim() : '',
         role: (role || 'USER').toUpperCase(),
-        specialty
+        specialty,
+        is_public: is_public !== undefined ? is_public : true
     });
 
     newUser = await userRepo.save(newUser);
