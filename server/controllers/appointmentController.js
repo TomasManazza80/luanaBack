@@ -33,8 +33,8 @@ export const createAppointment = async (req, res) => {
     if (patient.datos_contacto?.telefono || patient.datos_contacto?.phone) {
         const userRepo = AppDataSource.getRepository('User');
         const prof = await userRepo.findOne({ where: { id: professionalId } });
-        if (prof?.whatsapp_connected && prof?.whatsapp_message_template) {
-            let msg = prof.whatsapp_message_template;
+        if (prof?.whatsapp_connected && prof?.whatsapp_creation_template) {
+            let msg = prof.whatsapp_creation_template;
             msg = msg.replace(/{{patient_name}}/g, patient.nombre || '');
             msg = msg.replace(/{{date}}/g, format(new Date(fecha_hora), "dd 'de' MMMM", { locale: es }));
             msg = msg.replace(/{{time}}/g, format(new Date(fecha_hora), 'HH:mm'));

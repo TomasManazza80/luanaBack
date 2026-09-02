@@ -22,7 +22,9 @@ export const UserSchema = new EntitySchema({
     service_images: { type: 'simple-array', nullable: true },
     is_public: { type: 'boolean', default: false, nullable: true },
     whatsapp_connected: { type: 'boolean', default: false, nullable: true },
-    whatsapp_message_template: { type: 'text', nullable: true },
+    whatsapp_creation_template: { type: 'text', nullable: true },
+    whatsapp_reminder_template: { type: 'text', nullable: true },
+    whatsapp_reminder_minutes: { type: 'int', default: 60, nullable: true },
   },
   relations: {
     patients: { target: 'Patient', type: 'many-to-many', inverseSide: 'professionals' },

@@ -103,12 +103,18 @@ let publicRouterError = null;
 Promise.all([
     import('./server/database.js').then(db => db.AppDataSource.initialize()),
     import('./server/routes/kinesioRoutes.js'),
-    import('./server/routes/publicRoutes.js')
+    import('./server/routes/publicRoutes.js'),
+    import('./server/jobs/whatsappReminderCron.js')
 ])
-    .then(([db, kinesioModule, publicModule]) => {
+    .then(([db, kinesioModule, publicModule, cronModule]) => {
         kinesioRouter = kinesioModule.default || kinesioModule;
         publicRouterEsm = publicModule.default || publicModule;
         console.log("Kinesio DB and routes loaded successfully.");
+        
+        if (cronModule && cronModule.startReminderCron) {
+            cronModule.startReminderCron();
+            console.log("WhatsApp Reminder Cron Job started.");
+        }
     })
     .catch(err => {
         kinesioRouterError = err;

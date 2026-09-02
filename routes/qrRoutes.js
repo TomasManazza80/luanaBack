@@ -7,5 +7,6 @@ router.post('/start', whatsappController.startWhatsapp);
 router.post('/restart', whatsappController.restartWhatsapp);
 router.post('/disconnect', whatsappController.disconnectWhatsapp);
 router.post('/template', whatsappController.saveTemplate);
+router.post('/send-message', whatsappController.sendWhatsappMessage);
 
 module.exports = router;

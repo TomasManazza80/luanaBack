@@ -14,6 +14,7 @@ export const AppointmentSchema = new EntitySchema({
     motivo: { type: 'varchar', nullable: true },
     mp_preference_id: { type: 'varchar', nullable: true },
     payment_id: { type: 'varchar', nullable: true },
+    reminder_sent: { type: 'boolean', default: false },
   },
   relations: {
     professional: {

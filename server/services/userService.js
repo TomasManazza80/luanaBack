@@ -21,7 +21,8 @@ export async function getProfessionals() {
         relations: { patients: true },
         select: { 
             id: true, email: true, name: true, specialty: true, role: true, 
-            session_fee: true, require_payment: true, mp_access_token: true, profile_picture: true, service_images: true, is_public: true
+            session_fee: true, require_payment: true, mp_access_token: true, profile_picture: true, service_images: true, is_public: true,
+            whatsapp_connected: true, whatsapp_creation_template: true, whatsapp_reminder_template: true, whatsapp_reminder_minutes: true
         }
     });
 }
@@ -30,7 +31,7 @@ export async function getUserById(id) {
     return getUserRepo().findOne({
         where: { id },
         relations: { patients: true },
-        select: { id: true, email: true, name: true, role: true, specialty: true, session_fee: true, require_payment: true, mp_access_token: true, createdAt: true, updatedAt: true, profile_picture: true, service_images: true, is_public: true }
+        select: { id: true, email: true, name: true, role: true, specialty: true, session_fee: true, require_payment: true, mp_access_token: true, createdAt: true, updatedAt: true, profile_picture: true, service_images: true, is_public: true, whatsapp_connected: true, whatsapp_creation_template: true, whatsapp_reminder_template: true, whatsapp_reminder_minutes: true }
     });
 }
 
@@ -78,7 +79,8 @@ export async function updateUserRole(id, role) {
 export async function updateUser(id, updateData) {
     const allowedFields = [
         'name', 'email', 'role', 'specialty', 'session_fee', 
-        'require_payment', 'mp_access_token', 'profile_picture', 'service_images', 'is_public'
+        'require_payment', 'mp_access_token', 'profile_picture', 'service_images', 'is_public',
+        'whatsapp_creation_template', 'whatsapp_reminder_template', 'whatsapp_reminder_minutes'
     ];
 
     const cleanData = {};
@@ -96,7 +98,7 @@ export async function updateUser(id, updateData) {
     
     return getUserRepo().findOne({
         where: { id },
-        select: { id: true, email: true, name: true, role: true, specialty: true, session_fee: true, require_payment: true, mp_access_token: true, profile_picture: true, service_images: true, is_public: true }
+        select: { id: true, email: true, name: true, role: true, specialty: true, session_fee: true, require_payment: true, mp_access_token: true, profile_picture: true, service_images: true, is_public: true, whatsapp_connected: true, whatsapp_creation_template: true, whatsapp_reminder_template: true, whatsapp_reminder_minutes: true }
     });
 }
 

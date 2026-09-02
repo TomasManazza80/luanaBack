@@ -1,5 +1,6 @@
 const baileys = require('@whiskeysockets/baileys');
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion } = baileys;
+const { default: makeWASocket, DisconnectReason, Browsers, fetchLatestBaileysVersion } = baileys;
+const useSequelizeAuthState = require('./useSequelizeAuthState');
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -17,21 +18,32 @@ const MAX_QR_ATTEMPTS = 3;
 let isConnected = false;
 let reconnectTimeout = null;
 
+let ioInstance = null;
+const setIO = (io) => {
+    ioInstance = io;
+    ioInstance.on('connection', (socket) => {
+        socket.emit('whatsapp-status', estado);
+        if (ultimoQR) socket.emit('whatsapp-qr', ultimoQR);
+    });
+};
+
+const updateEstado = (nuevoEstado) => {
+    estado = nuevoEstado;
+    if (ioInstance) ioInstance.emit('whatsapp-status', estado);
+};
+
+const updateQr = (nuevoQr) => {
+    ultimoQR = nuevoQr;
+    if (ioInstance) ioInstance.emit('whatsapp-qr', ultimoQR);
+};
+
+
 const cleanupAuth = async () => {
     try {
-        const authDir = path.join(process.cwd(), 'auth_info_baileys');
-        try {
-            const files = await fs.readdir(authDir);
-            for (const file of files) {
-                await fs.unlink(path.join(authDir, file));
-            }
-            await fs.rmdir(authDir);
-            console.log("🧹 [WhatsApp] Credenciales antiguas eliminadas");
-            return true;
-        } catch (e) {
-            console.log("ℹ️ [WhatsApp] No hay credenciales para limpiar");
-            return false;
-        }
+        const WhatsappSession = require('../../models/whatsappSession');
+        await WhatsappSession.destroy({ where: {} });
+        console.log("🧹 [WhatsApp] Credenciales antiguas eliminadas de la BD");
+        return true;
     } catch (error) {
         console.log("⚠️ Error limpiando auth:", error.message);
         return false;
@@ -53,7 +65,7 @@ const init = async () => {
 
     if (connectionAttempts > MAX_CONNECTION_ATTEMPTS) {
         console.log("🛑 [WhatsApp] Máximo de intentos de conexión alcanzado");
-        estado = 'max_attempts_reached';
+        updateEstado('max_attempts_reached');
         return;
     }
 
@@ -64,7 +76,7 @@ const init = async () => {
         const { version, isLatest } = await fetchLatestBaileysVersion();
         console.log(`🔧 [WhatsApp] Usando versión WA Web: ${version.join('.')} | ¿Última? ${isLatest}`);
 
-        const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+        const { state, saveCreds } = await useSequelizeAuthState();
 
         sock = makeWASocket({
             version,
@@ -84,13 +96,13 @@ const init = async () => {
 
             if (qr) {
                 qrAttempts++;
-                ultimoQR = qr;
-                estado = 'qr';
+                updateQr(qr);
+                updateEstado('qr');
                 console.log(`📲 [WhatsApp] QR generado (Intento ${qrAttempts}/${MAX_QR_ATTEMPTS})`);
 
                 if (qrAttempts >= MAX_QR_ATTEMPTS) {
                     console.log("🛑 [WhatsApp] Límite de 3 QRs alcanzado. Deteniendo servicio.");
-                    estado = 'max_qr_attempts_reached';
+                    updateEstado('max_qr_attempts_reached');
 
                     if (sock) {
                         try {
@@ -109,8 +121,8 @@ const init = async () => {
 
             if (connection === 'open') {
                 isConnected = true;
-                estado = 'connected';
-                ultimoQR = null;
+                updateEstado('connected');
+                updateQr(null);
                 qrAttempts = 0;
                 connectionAttempts = 0;
                 console.log("🟢 [WhatsApp] Conectado exitosamente");
@@ -130,7 +142,7 @@ const init = async () => {
                 // 440 suele ser conflicto de sesión o stream. Limpiamos y reintentamos.
                 if (statusCode === 401 || statusCode === 440 || statusCode === DisconnectReason.loggedOut) {
                     console.log(`🔑 [WhatsApp] Sesión conflictiva (${statusCode}). Limpiando auth...`);
-                    estado = 'session_expired';
+                    updateEstado('session_expired');
                     await cleanupAuth();
 
                     qrAttempts = 0;
@@ -154,7 +166,7 @@ const init = async () => {
                 }
 
                 if (connectionAttempts < MAX_CONNECTION_ATTEMPTS && estado !== 'max_qr_attempts_reached') {
-                    estado = 'reconnecting';
+                    updateEstado('reconnecting');
                     console.log(`🔄 [WhatsApp] Reconectando en 5 segundos...`);
 
                     reconnectTimeout = setTimeout(async () => {
@@ -163,7 +175,7 @@ const init = async () => {
                         }
                     }, 5000);
                 } else {
-                    if (estado !== 'max_qr_attempts_reached') estado = 'disconnected';
+                    if (estado !== 'max_qr_attempts_reached') updateEstado('disconnected');
                     console.log("🛑 [WhatsApp] No se reconectará automáticamente");
                 }
             }
@@ -175,7 +187,7 @@ const init = async () => {
 
     } catch (error) {
         console.error("❌ [WhatsApp] Error crítico al inicializar:", error);
-        estado = 'error';
+        updateEstado('error');
         isConnected = false;
 
         if (connectionAttempts < MAX_CONNECTION_ATTEMPTS) {
@@ -224,8 +236,8 @@ const restart = async () => {
     // Reset completo del estado para que siempre se genere un QR nuevo
     qrAttempts = 0;
     connectionAttempts = 0;
-    ultimoQR = null;
-    estado = 'loading';
+    updateQr(null);
+    updateEstado('loading');
     isConnected = false;
 
     // Limpiar auth para forzar nuevo QR
@@ -251,7 +263,7 @@ const disconnect = async () => {
                 sock.end();
             } catch (e) {}
             sock = null;
-            estado = 'manually_disconnected';
+            updateEstado('manually_disconnected');
             connectionAttempts = MAX_CONNECTION_ATTEMPTS + 1;
         } catch (e) {
             console.log("⚠️ Error desconectando:", e.message);
@@ -288,6 +300,7 @@ const forceCleanup = async () => {
 };
 
 module.exports = {
+    setIO,
     init,
     getStatus,
     restart,

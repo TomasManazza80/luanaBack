@@ -8,7 +8,8 @@ const app = require("../app.js");
 const debug = require("debug");
 const http = require("http");
 const { Sequelize } = require("../models/index.js");
-const { init: initWhatsapp } = require("../services/QrService/QrService.js");
+const { init: initWhatsapp, setIO } = require("../services/QrService/QrService.js");
+const { Server } = require("socket.io");
 
 /**
  * Get port from environment and store in Express.
@@ -23,6 +24,14 @@ app.set("port", port);
  */
 
 const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+setIO(io);
 
 /**
  * Listen on provided port, on all network interfaces.

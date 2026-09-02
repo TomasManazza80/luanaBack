@@ -51,10 +51,33 @@ const saveTemplate = async (req, res) => {
     }
 };
 
+const sendWhatsappMessage = async (req, res) => {
+    const { phone, message } = req.body;
+
+    if (!phone || !message) {
+        return res.status(400).json({ error: 'Se requieren los campos phone y message' });
+    }
+
+    try {
+        const result = await whatsappService.sendMessage(phone, message);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.message === 'WHATSAPP_NOT_CONNECTED') {
+            return res.status(503).json({
+                error: 'WhatsApp no está conectado. Escanee el QR primero.',
+                code: 'WHATSAPP_NOT_CONNECTED'
+            });
+        }
+        console.error('[WhatsApp] Error al enviar mensaje:', error);
+        res.status(500).json({ error: 'Error interno al enviar el mensaje' });
+    }
+};
+
 module.exports = { 
     getWhatsappStatus, 
     restartWhatsapp,
     startWhatsapp,
     disconnectWhatsapp,
-    saveTemplate
+    saveTemplate,
+    sendWhatsappMessage
 };
