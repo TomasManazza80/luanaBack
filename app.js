@@ -43,6 +43,7 @@ const successCasesRouter = reqRoute('./routes/successCase/successCaseRoutes.js')
 const heroSliderRouter = reqRoute('./routes/heroSlider/heroSliderRoutes.js');
 const pronunciationRouter = reqRoute('./routes/pronunciationRoutes.js');
 const homeContentRouter = reqRoute('./routes/homeContentRoutes.js');
+const senaPaymentRouter = reqRoute('./routes/senaPaymentRoutes.js');
 
 const app = express();
 
@@ -92,6 +93,7 @@ app.use('/success-cases', successCasesRouter);
 app.use('/api/hero-slider', heroSliderRouter);
 app.use('/api/pronunciation', pronunciationRouter);
 app.use('/home-content', homeContentRouter);
+app.use('/api/sena', senaPaymentRouter);
 // Kinesio Routes (ES Module)
 let kinesioRouter = null;
 let kinesioRouterError = null;
