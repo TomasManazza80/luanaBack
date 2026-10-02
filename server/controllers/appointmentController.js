@@ -1,5 +1,6 @@
 import { AppDataSource } from '../database.js';
 import * as whatsappService from '../services/whatsappService.js';
+import moment from 'moment-timezone';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/index.js';
 
@@ -19,11 +20,14 @@ export const createAppointment = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: El paciente no te pertenece.' });
     }
 
+    const parsedFechaHora = moment.tz(fecha_hora, ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm'], 'America/Argentina/Buenos_Aires').toDate();
+    const parsedEndTime = end_time ? moment.tz(end_time, ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm'], 'America/Argentina/Buenos_Aires').toDate() : null;
+
     const newAppointment = appointmentRepo.create({
       patient: { id: parseInt(patient_id) },
       professional: { id: professionalId },
-      fecha_hora,
-      end_time,
+      fecha_hora: parsedFechaHora,
+      end_time: parsedEndTime,
       motivo
     });
 
@@ -114,7 +118,12 @@ export const updateAppointment = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden: El turno no existe o no tienes permisos para editarlo.' });
     }
 
-    appointmentRepo.merge(appointment, { estado, fecha_hora, motivo });
+    let updateData = { estado, motivo };
+    if (fecha_hora) {
+      updateData.fecha_hora = moment.tz(fecha_hora, ['YYYY-MM-DDTHH:mm:ss.SSSZ', 'YYYY-MM-DDTHH:mm'], 'America/Argentina/Buenos_Aires').toDate();
+    }
+
+    appointmentRepo.merge(appointment, updateData);
     await appointmentRepo.save(appointment);
     res.json(appointment);
   } catch (error) {

@@ -1,3 +1,4 @@
+process.env.TZ = 'America/Argentina/Buenos_Aires';
 import express from 'express';
 import cors from 'cors';
 import {createServer} from "node:http"

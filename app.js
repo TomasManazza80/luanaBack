@@ -92,7 +92,7 @@ app.use('/', providerRouter);
 app.use('/success-cases', successCasesRouter);
 app.use('/api/hero-slider', heroSliderRouter);
 app.use('/api/pronunciation', pronunciationRouter);
-app.use('/home-content', homeContentRouter);
+app.use('/api/home-content', homeContentRouter);
 app.use('/api/sena', senaPaymentRouter);
 // Kinesio Routes (ES Module)
 let kinesioRouter = null;
