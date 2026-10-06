@@ -101,16 +101,21 @@ let kinesioRouterError = null;
 let publicRouterEsm = null;
 let publicRouterError = null;
 
+let uploadRouterEsm = null;
+let uploadRouterError = null;
+
 // Initialize Kinesio DB connection and routes
 Promise.all([
     import('./server/database.js').then(db => db.AppDataSource.initialize()),
     import('./server/routes/kinesioRoutes.js'),
     import('./server/routes/publicRoutes.js'),
-    import('./server/jobs/whatsappReminderCron.js')
+    import('./server/jobs/whatsappReminderCron.js'),
+    import('./server/routes/uploadRoutes.js')
 ])
-    .then(([db, kinesioModule, publicModule, cronModule]) => {
+    .then(([db, kinesioModule, publicModule, cronModule, uploadModule]) => {
         kinesioRouter = kinesioModule.default || kinesioModule;
         publicRouterEsm = publicModule.default || publicModule;
+        uploadRouterEsm = uploadModule.default || uploadModule;
         console.log("Kinesio DB and routes loaded successfully.");
         
         if (cronModule && cronModule.startReminderCron) {
@@ -121,7 +126,8 @@ Promise.all([
     .catch(err => {
         kinesioRouterError = err;
         publicRouterError = err;
-        console.error("Error loading kinesio/public modules:", err);
+        uploadRouterError = err;
+        console.error("Error loading kinesio/public/upload modules:", err);
     });
 
 app.use('/api/kinesio', (req, res, next) => {
@@ -142,6 +148,16 @@ app.use('/api/public', (req, res, next) => {
         return next(new Error("Public routes error: " + publicRouterError.message + "\n" + publicRouterError.stack));
     }
     next(new Error("Public routes not loaded yet."));
+});
+
+app.use('/api/upload', (req, res, next) => {
+    if (uploadRouterEsm) {
+        return uploadRouterEsm(req, res, next);
+    }
+    if (uploadRouterError) {
+        return next(new Error("Upload routes error: " + uploadRouterError.message + "\n" + uploadRouterError.stack));
+    }
+    next(new Error("Upload routes not loaded yet."));
 });
 
 // Catch 404
