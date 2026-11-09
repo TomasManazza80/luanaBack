@@ -29,6 +29,7 @@ const PronunciationTask = require("./pronunciationTasks/PronunciationTask.js");
 const StudentAttempt = require("./studentAttempts/StudentAttempt.js");
 const Dispatch = require("../models/ventasEcommerce/ventasEcommerce");
 const WhatsappSession = require("./whatsappSession");
+const Payment = require("./payments/payment");
 
 // 3. Importación e Inicialización de Modelos tipo "Factory"
 const encargoFactory = require("../models/reparaciones/reparaciones");
@@ -114,5 +115,6 @@ module.exports = {
   PronunciationActivity,
   PronunciationTask,
   StudentAttempt,
-  WhatsappSession
+  WhatsappSession,
+  Payment
 };
