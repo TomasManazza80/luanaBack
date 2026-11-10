@@ -2,7 +2,7 @@ const mercadopago = require('mercadopago');
 const productService = require('../services/productService');
 
 // CONFIGURACIÓN DE ACCESO
-const ACCESS_TOKEN = 'APP_USR-2648142854934849-012012-5a948aed8f1967e68d8e41e4a5120c2b-632503296';
+const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-2802580939336775-091516-dd2a4a2a4b0bc9c246c62f768175b1f1-240187551';
 const FONT_URL = process.env.FONT_URL;
 /**
  * CREA UNA PREFERENCIA DIRECTA EN MERCADO PAGO (OPCIONAL SI NO USAS VEXOR)

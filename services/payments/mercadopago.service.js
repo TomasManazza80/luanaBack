@@ -3,9 +3,9 @@ const { MercadoPagoConfig, Preference } = require('mercadopago');
 class MercadoPagoService {
   constructor() {
     // Inicializar el SDK de Mercado Pago
-    // Importante: Asegúrate de tener MERCADOPAGO_ACCESS_TOKEN en tu .env
+    // Importante: Asegúrate de tener MP_ACCESS_TOKEN o MERCADOPAGO_ACCESS_TOKEN en tu .env
     this.client = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-12345678-031820-X-12345678',
+      accessToken: process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-2802580939336775-091516-dd2a4a2a4b0bc9c246c62f768175b1f1-240187551',
       options: { timeout: 5000 }
     });
 
