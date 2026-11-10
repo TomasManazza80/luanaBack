@@ -214,7 +214,7 @@ export const createPublicAppointment = async (req, res) => {
         }
 
         const { requires_deposit, deposit_amount, payment_timeout_minutes } = resolveDepositConfig(prof);
-        let mpAccessToken = prof.mp_access_token || process.env.MERCADOPAGO_ACCESS_TOKEN;
+        let mpAccessToken = prof.mp_access_token || process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN;
 
         if (requires_deposit && !mpAccessToken) {
             const allUsers = await userRepo.find();
@@ -360,7 +360,7 @@ export const createPublicAppointment = async (req, res) => {
                             pending: `${frontendUrl}/turnos/pendiente`
                         },
                         auto_return: 'approved',
-                        notification_url: `${backendUrl}/webhooks/mercadopago?prof_id=${prof.id}`,
+                        notification_url: `${backendUrl}/api/public/webhook/mercadopago?prof_id=${prof.id}`,
                         expires: true,
                         expiration_date_from: now.toISOString(),
                         expiration_date_to: expiresAt.toISOString()
@@ -430,7 +430,7 @@ export const getPublicAppointmentStatus = async (req, res) => {
 
         // Si viene payment_id en el retorno y el turno aún figura PENDING_PAYMENT, sincronizamos con MP de forma idempotente
         if (payment_id && (appointment.estado === 'PENDING_PAYMENT' || appointment.estado === 'pendiente_pago')) {
-            const mpAccessToken = appointment.professional?.mp_access_token || process.env.MERCADOPAGO_ACCESS_TOKEN;
+            const mpAccessToken = appointment.professional?.mp_access_token || process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN;
             if (mpAccessToken) {
                 try {
                     const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
@@ -572,7 +572,7 @@ export const handleMercadoPagoWebhook = async (req, res) => {
         const appointmentRepo = AppDataSource.getRepository('Appointment');
 
         // Determinar el accessToken para consultar el pago en Mercado Pago
-        let mpAccessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+        let mpAccessToken = process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN;
         const profId = query.prof_id;
 
         if (profId) {

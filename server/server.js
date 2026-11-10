@@ -6,6 +6,7 @@ import { Server } from 'socket.io';
 import * as authController from "./controllers/authController.js";
 import {authenticateToken} from "./controllers/authController.js";
 import * as userController from "./controllers/userController.js";
+import * as publicController from "./controllers/publicController.js";
 import publicRoutes from "./routes/publicRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
@@ -34,6 +35,8 @@ app.get('/', (req, res) => {
 
 // Public API
 app.use('/api/public', publicRoutes);
+app.post('/webhooks/mercadopago', publicController.handleMercadoPagoWebhook);
+app.post('/webhook/mercadopago', publicController.handleMercadoPagoWebhook);
 // app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 
