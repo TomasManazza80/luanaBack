@@ -72,21 +72,39 @@ const init = async () => {
     console.log(`🚀 [WhatsApp] Iniciando (Intento conexión ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS})`);
 
     try {
-        // Obtener la versión más reciente de WA Web para evitar el error 405
-        const { version, isLatest } = await fetchLatestBaileysVersion();
-        console.log(`🔧 [WhatsApp] Usando versión WA Web: ${version.join('.')} | ¿Última? ${isLatest}`);
+        // Obtener la versión de WA Web con fallback seguro
+        let version = [2, 3000, 1015901307];
+        try {
+            const vInfo = await fetchLatestBaileysVersion();
+            if (vInfo && vInfo.version) version = vInfo.version;
+            console.log(`🔧 [WhatsApp] Usando versión WA Web: ${version.join('.')}`);
+        } catch (e) {
+            console.warn("⚠️ [WhatsApp] Fallback a versión WA Web:", e.message);
+        }
 
         const { state, saveCreds } = await useSequelizeAuthState();
+
+        if (sock) {
+            try {
+                sock.ev.removeAllListeners();
+                sock.end();
+            } catch (e) {}
+            sock = null;
+        }
 
         sock = makeWASocket({
             version,
             auth: state,
-            logger: pino({ level: 'error' }),
-            browser: Browsers.ubuntu('Chrome'),
-            connectTimeoutMs: 90000,
+            logger: pino({ level: 'silent' }),
+            browser: Browsers.macOS('Chrome'),
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 60000,
             keepAliveIntervalMs: 10000,
             markOnlineOnConnect: false,
-            printQRInTerminal: true,
+            syncFullHistory: false,
+            generateHighQualityLinkPreview: false,
+            getMessage: async () => ({ conversation: '' }),
+            printQRInTerminal: false,
         });
 
         sock.ev.on('creds.update', saveCreds);
@@ -101,7 +119,7 @@ const init = async () => {
                 console.log(`📲 [WhatsApp] QR generado (Intento ${qrAttempts}/${MAX_QR_ATTEMPTS})`);
 
                 if (qrAttempts >= MAX_QR_ATTEMPTS) {
-                    console.log("🛑 [WhatsApp] Límite de 3 QRs alcanzado. Deteniendo servicio.");
+                    console.log("🛑 [WhatsApp] Límite de QRs alcanzado. Deteniendo servicio.");
                     updateEstado('max_qr_attempts_reached');
 
                     if (sock) {
@@ -133,16 +151,29 @@ const init = async () => {
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const errorMessage = lastDisconnect?.error?.message;
 
-                // Log detallado del error de desconexión
                 console.log(`🔌 [WhatsApp] Desconectado. Código: ${statusCode || 'desconocido'} | Mensaje: ${errorMessage || 'sin mensaje'}`);
-                if (lastDisconnect?.error) {
-                    console.log("🔍 [WhatsApp] Detalle del error:", JSON.stringify(lastDisconnect.error, null, 2));
+
+                // 1. RESTART REQUIRED (515) -> Ocurre siempre tras escanear el QR en el celular para vincular
+                if (statusCode === DisconnectReason.restartRequired || statusCode === 515) {
+                    console.log("⚡ [WhatsApp] Reinicio requerido (515) tras escanear QR. Reconectando inmediatamente...");
+                    connectionAttempts = 0;
+                    if (sock) {
+                        try {
+                            sock.ev.removeAllListeners();
+                            sock.end();
+                        } catch (e) {}
+                        sock = null;
+                    }
+                    setTimeout(async () => {
+                        await init();
+                    }, 400);
+                    return;
                 }
 
-                // 440 suele ser conflicto de sesión o stream. Limpiamos y reintentamos.
-                if (statusCode === 401 || statusCode === 440 || statusCode === DisconnectReason.loggedOut) {
-                    console.log(`🔑 [WhatsApp] Sesión conflictiva (${statusCode}). Limpiando auth...`);
-                    updateEstado('session_expired');
+                // 2. SESIÓN EXPIRADA / LOGOUT / UNAUTHORIZED (401, 403, 440, loggedOut)
+                if (statusCode === 401 || statusCode === 403 || statusCode === 440 || statusCode === DisconnectReason.loggedOut) {
+                    console.log(`🔑 [WhatsApp] Sesión terminada (${statusCode}). Limpiando auth...`);
+                    updateEstado('disconnected');
                     await cleanupAuth();
 
                     qrAttempts = 0;
@@ -152,28 +183,30 @@ const init = async () => {
                         try {
                             sock.ev.removeAllListeners();
                             sock.end();
-                        } catch (e) {
-                            console.log("⚠️ Error deteniendo socket:", e.message);
-                        }
+                        } catch (e) {}
                         sock = null;
                     }
-
-                    console.log("⏳ [WhatsApp] Reiniciando en 3 segundos...");
-                    reconnectTimeout = setTimeout(async () => {
-                        await init();
-                    }, 3000);
                     return;
                 }
 
+                // 3. RECONEXIÓN TEMPORAL (428, timeouts, etc.)
                 if (connectionAttempts < MAX_CONNECTION_ATTEMPTS && estado !== 'max_qr_attempts_reached') {
                     updateEstado('reconnecting');
-                    console.log(`🔄 [WhatsApp] Reconectando en 5 segundos...`);
+                    console.log(`🔄 [WhatsApp] Reconectando en 2 segundos...`);
+
+                    if (sock) {
+                        try {
+                            sock.ev.removeAllListeners();
+                            sock.end();
+                        } catch (e) {}
+                        sock = null;
+                    }
 
                     reconnectTimeout = setTimeout(async () => {
                         if (!isConnected) {
                             await init();
                         }
-                    }, 5000);
+                    }, 2000);
                 } else {
                     if (estado !== 'max_qr_attempts_reached') updateEstado('disconnected');
                     console.log("🛑 [WhatsApp] No se reconectará automáticamente");

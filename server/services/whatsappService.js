@@ -15,16 +15,32 @@ export const initializeClient = async (profId) => {
 
     try {
         const sessionPath = path.resolve(`whatsapp_sessions/prof_${profId}`);
+        if (!fs.existsSync(sessionPath)) {
+            fs.mkdirSync(sessionPath, { recursive: true });
+        }
         const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
-        const { version } = await fetchLatestBaileysVersion();
+        
+        let version = [2, 3000, 1015901307];
+        try {
+            const v = await fetchLatestBaileysVersion();
+            if (v && v.version) version = v.version;
+        } catch (e) {
+            console.warn(`[WhatsApp] Fallback versión WA Web para prof ${profId}:`, e.message);
+        }
 
         const sock = makeWASocket({
             version,
             auth: state,
             printQRInTerminal: false,
             logger: pino({ level: 'silent' }),
-            browser: Browsers.macOS('Desktop'),
-            syncFullHistory: false
+            browser: Browsers.macOS('Chrome'),
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 60000,
+            keepAliveIntervalMs: 10000,
+            markOnlineOnConnect: false,
+            syncFullHistory: false,
+            generateHighQualityLinkPreview: false,
+            getMessage: async () => ({ conversation: '' })
         });
 
         clients.set(profId, { instance: sock, status: 'initializing', qr: null });
@@ -41,27 +57,37 @@ export const initializeClient = async (profId) => {
                 console.log(`[WhatsApp] QR generated for Prof ${profId}`);
                 clientData.qr = qr;
                 clientData.status = 'qr_ready';
-                io.emit(`qr-${profId}`, qr);
-                io.emit(`status-${profId}`, 'qr_ready');
+                io?.emit(`qr-${profId}`, qr);
+                io?.emit(`status-${profId}`, 'qr_ready');
+                io?.emit('whatsapp-qr', qr);
+                io?.emit('whatsapp-status', 'qr_ready');
             }
 
             if (connection === 'close') {
-                const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
-                console.log(`[WhatsApp] Prof ${profId} connection closed. Reconnect: ${shouldReconnect}`);
+                const statusCode = (lastDisconnect?.error)?.output?.statusCode;
+                console.log(`[WhatsApp] Prof ${profId} connection closed. Code: ${statusCode}`);
+                
+                // Reinicio inmediato al escanear QR (515)
+                if (statusCode === DisconnectReason.restartRequired || statusCode === 515) {
+                    console.log(`[WhatsApp] Prof ${profId} restart required (515). Reconnecting immediately...`);
+                    clients.delete(profId);
+                    setTimeout(() => initializeClient(profId), 400);
+                    return;
+                }
+
+                const shouldReconnect = statusCode !== DisconnectReason.loggedOut && statusCode !== 401 && statusCode !== 403;
                 
                 if (shouldReconnect) {
-                    // Try to reconnect
                     clients.delete(profId);
-                    setTimeout(() => initializeClient(profId), 5000);
+                    setTimeout(() => initializeClient(profId), 2000);
                 } else {
-                    // Logged out
                     clients.delete(profId);
-                    io.emit(`status-${profId}`, 'disconnected');
+                    io?.emit(`status-${profId}`, 'disconnected');
+                    io?.emit('whatsapp-status', 'disconnected');
                     
                     const userRepo = AppDataSource.getRepository('User');
                     await userRepo.update(profId, { whatsapp_connected: false });
                     
-                    // Clean up folder
                     if (fs.existsSync(sessionPath)) {
                         fs.rmSync(sessionPath, { recursive: true, force: true });
                     }
@@ -71,7 +97,8 @@ export const initializeClient = async (profId) => {
                 clientData.status = 'connected';
                 clientData.qr = null;
                 
-                io.emit(`status-${profId}`, 'connected');
+                io?.emit(`status-${profId}`, 'connected');
+                io?.emit('whatsapp-status', 'connected');
                 
                 const userRepo = AppDataSource.getRepository('User');
                 await userRepo.update(profId, { whatsapp_connected: true });

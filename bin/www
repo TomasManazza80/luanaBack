@@ -32,6 +32,11 @@ const io = new Server(server, {
   }
 });
 setIO(io);
+try {
+  import("../server/services/whatsappService.js")
+    .then(mod => mod?.setSocketIo && mod.setSocketIo(io))
+    .catch(() => {});
+} catch (e) {}
 
 /**
  * Listen on provided port, on all network interfaces.

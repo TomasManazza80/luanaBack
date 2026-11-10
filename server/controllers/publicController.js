@@ -355,7 +355,7 @@ export const createPublicAppointment = async (req, res) => {
                         ],
                         external_reference: newAppointment.id.toString(),
                         back_urls: {
-                            success: `${frontendUrl}/turnos/exito`,
+                            success: process.env.MP_SUCCESS_URL || 'https://luanstudiosf.com/',
                             failure: `${frontendUrl}/turnos/error`,
                             pending: `${frontendUrl}/turnos/pendiente`
                         },

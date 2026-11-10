@@ -1,8 +1,8 @@
 const { initAuthCreds, BufferJSON } = require('@whiskeysockets/baileys');
-const WhatsappSession = require('../../models/whatsappSession'); // Ruta al modelo
+const { Op } = require('sequelize');
+const WhatsappSession = require('../../models/whatsappSession');
 
 const useSequelizeAuthState = async () => {
-    // Función auxiliar para leer un dato por ID
     const readData = async (id) => {
         try {
             const data = await WhatsappSession.findOne({ where: { id } });
@@ -11,31 +11,20 @@ const useSequelizeAuthState = async () => {
             }
             return null;
         } catch (error) {
-            console.error('Error leyendo sesión de DB:', error);
+            console.error('Error leyendo sesión de DB:', error.message);
             return null;
         }
     };
 
-    // Función auxiliar para escribir un dato
     const writeData = async (id, data) => {
         try {
             const dataString = JSON.stringify(data, BufferJSON.replacer);
             await WhatsappSession.upsert({ id, data: dataString });
         } catch (error) {
-            console.error('Error guardando sesión en DB:', error);
+            console.error('Error guardando sesión en DB:', error.message);
         }
     };
 
-    // Función auxiliar para eliminar un dato
-    const removeData = async (id) => {
-        try {
-            await WhatsappSession.destroy({ where: { id } });
-        } catch (error) {
-            console.error('Error eliminando sesión en DB:', error);
-        }
-    };
-
-    // Leer credenciales iniciales
     let creds = await readData('creds');
     if (!creds) {
         creds = initAuthCreds();
@@ -48,28 +37,51 @@ const useSequelizeAuthState = async () => {
             keys: {
                 get: async (type, ids) => {
                     const data = {};
-                    await Promise.all(
-                        ids.map(async (id) => {
-                            const value = await readData(`${type}-${id}`);
-                            if (type === 'app-state-sync-key' && value) {
-                                data[id] = value;
-                            } else if (value) {
-                                data[id] = value;
+                    if (!ids || ids.length === 0) return data;
+                    try {
+                        const fullKeys = ids.map(id => `${type}-${id}`);
+                        const rows = await WhatsappSession.findAll({
+                            where: { id: { [Op.in]: fullKeys } }
+                        });
+                        for (const row of rows) {
+                            if (row && row.data) {
+                                const id = row.id.substring(type.length + 1);
+                                data[id] = JSON.parse(row.data, BufferJSON.reviver);
                             }
-                        })
-                    );
+                        }
+                    } catch (err) {
+                        console.error('Error batch reading keys from DB:', err.message);
+                    }
                     return data;
                 },
                 set: async (data) => {
-                    const tasks = [];
+                    const records = [];
+                    const deleteIds = [];
                     for (const category in data) {
                         for (const id in data[category]) {
                             const value = data[category][id];
                             const key = `${category}-${id}`;
-                            tasks.push(value ? writeData(key, value) : removeData(key));
+                            if (value) {
+                                records.push({
+                                    id: key,
+                                    data: JSON.stringify(value, BufferJSON.replacer)
+                                });
+                            } else {
+                                deleteIds.push(key);
+                            }
                         }
                     }
-                    await Promise.all(tasks);
+
+                    if (records.length > 0) {
+                        await WhatsappSession.bulkCreate(records, {
+                            updateOnDuplicate: ['data', 'updatedAt']
+                        }).catch(err => console.error('Error bulk saving keys:', err.message));
+                    }
+                    if (deleteIds.length > 0) {
+                        await WhatsappSession.destroy({
+                            where: { id: { [Op.in]: deleteIds } }
+                        }).catch(err => console.error('Error deleting keys:', err.message));
+                    }
                 }
             }
         },
