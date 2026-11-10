@@ -32,7 +32,7 @@ export const startReminderCron = () => {
                     where: {
                         professional: { id: user.id },
                         reminder_sent: false,
-                        estado: Not(In(['cancelado', 'completado'])), // Exclude cancelled and completed
+                        estado: Not(In(['cancelado', 'completado', 'pendiente_pago', 'CANCELLED', 'EXPIRED', 'PENDING_PAYMENT'])),
                         fecha_hora: Between(targetTimeStart, targetTimeEnd)
                     },
                     relations: { patient: true }

@@ -55,7 +55,7 @@ export async function login(req, res) {
         // eslint-disable-next-line no-undef
         const refreshToken = jwt.sign({ userId: user.id, email: user.email, role: user.role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN });
 
-        res.status(200).json({ message: "Login successful", accessToken: accessToken, refreshToken: refreshToken, user: { role: user.role } });
+        res.status(200).json({ message: "Login successful", accessToken: accessToken, refreshToken: refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     } catch (error) {
         res.status(500).json({ message: "Error logging in" });
     }

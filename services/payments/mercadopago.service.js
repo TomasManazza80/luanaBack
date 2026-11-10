@@ -4,11 +4,11 @@ class MercadoPagoService {
   constructor() {
     // Inicializar el SDK de Mercado Pago
     // Importante: Asegúrate de tener MERCADOPAGO_ACCESS_TOKEN en tu .env
-    this.client = new MercadoPagoConfig({ 
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-12345678-031820-X-12345678', 
-      options: { timeout: 5000 } 
+    this.client = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || 'APP_USR-12345678-031820-X-12345678',
+      options: { timeout: 5000 }
     });
-    
+
     this.preference = new Preference(this.client);
   }
 
@@ -41,7 +41,7 @@ class MercadoPagoService {
 
       console.log("Sending MP body:", JSON.stringify(body, null, 2));
       const response = await this.preference.create({ body });
-      
+
       // En modo producción se suele usar init_point, en desarrollo sandbox_init_point
       return response.init_point;
     } catch (error) {

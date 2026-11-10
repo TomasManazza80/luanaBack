@@ -1,8 +1,21 @@
 import { AppDataSource } from '../database.js';
 
+const resolveProfessionalId = (req) => {
+    const authUserId = parseInt(req.user?.userId ?? req.user?.id);
+    const requestedId = parseInt(req.query?.professional_id ?? req.body?.professional_id);
+    const isAdmin = String(req.user?.role || '').toUpperCase() === 'ADMIN';
+    if (isAdmin && !isNaN(requestedId)) {
+        return requestedId;
+    }
+    return authUserId;
+};
+
 export const getAvailability = async (req, res) => {
     try {
-        const professionalId = (req.user.role === 'ADMIN' && req.query.professional_id) ? parseInt(req.query.professional_id) : req.user.userId; // Get requested or logged in professional's ID
+        const professionalId = resolveProfessionalId(req);
+        if (!professionalId || isNaN(professionalId)) {
+            return res.status(400).json({ message: "No se pudo identificar al profesional" });
+        }
 
         const availabilityRepo = AppDataSource.getRepository('Availability');
         const availabilities = await availabilityRepo.find({
@@ -18,18 +31,22 @@ export const getAvailability = async (req, res) => {
 
 export const saveAvailability = async (req, res) => {
     try {
-        const professionalId = (req.user.role === 'ADMIN' && req.body.professional_id) 
-                               ? parseInt(req.body.professional_id) 
-                               : req.user.userId;
-        const { schedules, exceptions } = req.body; // schedules: array of {day_of_week, start_time, end_time}. exceptions: array of {exception_date, exception_title}
+        const professionalId = resolveProfessionalId(req);
+        if (!professionalId || isNaN(professionalId)) {
+            return res.status(400).json({ message: "No se pudo identificar al profesional" });
+        }
+
+        const { schedules, exceptions } = req.body;
 
         const availabilityRepo = AppDataSource.getRepository('Availability');
         
-        // Remove old availability for this professional
+        // Remove old availability ONLY for this specific professional
         const existing = await availabilityRepo.find({
             where: { professional: { id: professionalId } }
         });
-        await availabilityRepo.remove(existing);
+        if (existing.length > 0) {
+            await availabilityRepo.remove(existing);
+        }
 
         const newAvailabilities = [];
 
@@ -49,15 +66,21 @@ export const saveAvailability = async (req, res) => {
             }
         }
 
-        // Save exceptions
+        // Save exceptions (cancelled days for this professional)
         if (exceptions && Array.isArray(exceptions)) {
+            const seenDates = new Set();
             for (const exc of exceptions) {
+                if (!exc?.exception_date) continue;
+                const cleanDate = String(exc.exception_date).substring(0, 10);
+                if (seenDates.has(cleanDate)) continue;
+                seenDates.add(cleanDate);
+
                 newAvailabilities.push(
                     availabilityRepo.create({
                         professional: { id: professionalId },
                         is_exception: true,
-                        exception_date: exc.exception_date,
-                        exception_title: exc.exception_title
+                        exception_date: cleanDate,
+                        exception_title: exc.exception_title || 'Día cancelado'
                     })
                 );
             }

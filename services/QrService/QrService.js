@@ -10,11 +10,11 @@ const path = require('path');
 
 let sock = null;
 let ultimoQR = null;
-let estado = 'loading';
+let estado = 'disconnected';
 let qrAttempts = 0;
 let connectionAttempts = 0;
-const MAX_CONNECTION_ATTEMPTS = 3;
-const MAX_QR_ATTEMPTS = 3;
+const MAX_CONNECTION_ATTEMPTS = 5;
+const MAX_QR_ATTEMPTS = 10;
 let isConnected = false;
 let reconnectTimeout = null;
 
@@ -198,16 +198,31 @@ const init = async () => {
     }
 };
 
-const getStatus = () => ({
-    qr: ultimoQR,
-    status: estado,
-    qrAttempts: qrAttempts,
-    maxQrAttempts: MAX_QR_ATTEMPTS,
-    connectionAttempts: connectionAttempts,
-    maxAttempts: MAX_CONNECTION_ATTEMPTS,
-    isConnected: isConnected,
-    timestamp: new Date().toISOString()
-});
+const getConnectedDeviceInfo = () => {
+    if (!isConnected || !sock || !sock.user) return null;
+    const rawId = sock.user.id || '';
+    const phone = rawId.split(':')[0].split('@')[0];
+    return {
+        phone: phone ? `+${phone}` : null,
+        name: sock.user.name || null
+    };
+};
+
+const getStatus = () => {
+    const activeConnected = Boolean(isConnected && sock);
+    return {
+        qr: ultimoQR,
+        status: activeConnected ? 'connected' : estado,
+        qrAttempts: qrAttempts,
+        maxQrAttempts: MAX_QR_ATTEMPTS,
+        connectionAttempts: connectionAttempts,
+        maxAttempts: MAX_CONNECTION_ATTEMPTS,
+        isConnected: activeConnected,
+        connectedDevices: activeConnected ? 1 : 0,
+        deviceInfo: getConnectedDeviceInfo(),
+        timestamp: new Date().toISOString()
+    };
+};
 
 const restart = async () => {
     console.log("♻️ [WhatsApp] Reinicio manual solicitado");
@@ -255,20 +270,32 @@ const restart = async () => {
 };
 
 const disconnect = async () => {
+    if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+    }
+
     if (sock) {
         try {
             console.log("🔌 [WhatsApp] Desconexión manual");
             isConnected = false;
+            sock.ev.removeAllListeners();
+            try {
+                await sock.logout();
+            } catch (e) {}
             try {
                 sock.end();
             } catch (e) {}
             sock = null;
-            updateEstado('manually_disconnected');
-            connectionAttempts = MAX_CONNECTION_ATTEMPTS + 1;
         } catch (e) {
             console.log("⚠️ Error desconectando:", e.message);
         }
     }
+
+    isConnected = false;
+    updateQr(null);
+    updateEstado('disconnected');
+    connectionAttempts = MAX_CONNECTION_ATTEMPTS + 1;
 };
 
 const getSocket = () => sock;

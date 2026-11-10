@@ -1,5 +1,6 @@
 import { AppDataSource } from '../database.js';
 import * as whatsappService from '../services/whatsappService.js';
+import { expireOverdueAppointments } from '../jobs/appointmentExpirationCron.js';
 import moment from 'moment-timezone';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/index.js';
@@ -28,7 +29,9 @@ export const createAppointment = async (req, res) => {
       professional: { id: professionalId },
       fecha_hora: parsedFechaHora,
       end_time: parsedEndTime,
-      motivo
+      motivo,
+      estado: 'CONFIRMED',
+      payment_status: 'not_required'
     });
 
     await appointmentRepo.save(newAppointment);
@@ -61,6 +64,7 @@ import { Between } from 'typeorm';
 
 export const getAppointments = async (req, res) => {
   try {
+    await expireOverdueAppointments();
     const { start_date, end_date, professional_id, patient_id } = req.query;
     const appointmentRepo = AppDataSource.getRepository('Appointment');
     

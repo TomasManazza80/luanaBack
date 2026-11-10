@@ -115,17 +115,24 @@ Promise.all([
     import('./server/routes/kinesioRoutes.js'),
     import('./server/routes/publicRoutes.js'),
     import('./server/jobs/whatsappReminderCron.js'),
-    import('./server/routes/uploadRoutes.js')
+    import('./server/jobs/appointmentExpirationCron.js'),
+    import('./server/routes/uploadRoutes.js'),
+    import('./server/controllers/publicController.js')
 ])
-    .then(([db, kinesioModule, publicModule, cronModule, uploadModule]) => {
+    .then(([db, kinesioModule, publicModule, cronModule, expirationCronModule, uploadModule, publicControllerModule]) => {
         kinesioRouter = kinesioModule.default || kinesioModule;
         publicRouterEsm = publicModule.default || publicModule;
         uploadRouterEsm = uploadModule.default || uploadModule;
+        app.locals.handleMercadoPagoWebhook = publicControllerModule.handleMercadoPagoWebhook;
         console.log("Kinesio DB and routes loaded successfully.");
         
         if (cronModule && cronModule.startReminderCron) {
             cronModule.startReminderCron();
             console.log("WhatsApp Reminder Cron Job started.");
+        }
+        if (expirationCronModule && expirationCronModule.startExpirationCron) {
+            expirationCronModule.startExpirationCron();
+            console.log("Appointment Expiration Cron Job started (every 5 minutes).");
         }
     })
     .catch(err => {
@@ -134,6 +141,13 @@ Promise.all([
         uploadRouterError = err;
         console.error("Error loading kinesio/public/upload modules:", err);
     });
+
+app.post('/webhooks/mercadopago', (req, res, next) => {
+    if (app.locals.handleMercadoPagoWebhook) {
+        return app.locals.handleMercadoPagoWebhook(req, res, next);
+    }
+    return res.status(200).send('OK');
+});
 
 app.use('/api/kinesio', (req, res, next) => {
     if (kinesioRouter) {

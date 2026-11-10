@@ -10,10 +10,14 @@ export const AppointmentSchema = new EntitySchema({
     fecha_hora: { type: 'timestamptz' },
     end_time: { type: 'timestamptz', nullable: true },
     type: { type: 'varchar', nullable: true },
-    estado: { type: 'varchar', default: 'pendiente' }, // pendiente, pendiente_pago, confirmado, cancelado
+    estado: { type: 'varchar', default: 'CONFIRMED' }, // PENDING_PAYMENT, CONFIRMED, CANCELLED, EXPIRED
     motivo: { type: 'varchar', nullable: true },
+    deposit_amount_paid: { type: 'numeric', precision: 10, scale: 2, default: 0, nullable: true },
     mp_preference_id: { type: 'varchar', nullable: true },
+    mp_payment_id: { type: 'varchar', nullable: true },
     payment_id: { type: 'varchar', nullable: true },
+    payment_status: { type: 'varchar', nullable: true },
+    expires_at: { type: 'timestamptz', nullable: true },
     reminder_sent: { type: 'boolean', default: false },
   },
   relations: {

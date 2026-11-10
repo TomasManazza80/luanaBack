@@ -15,6 +15,9 @@ export const UserSchema = new EntitySchema({
     specialty: { type: 'simple-array', nullable: true }, // Added for Kinesiologist
     session_fee: { type: 'numeric', nullable: true, default: 0 },
     require_payment: { type: 'boolean', default: false, nullable: true },
+    requires_deposit: { type: 'boolean', default: false, nullable: true },
+    deposit_amount: { type: 'numeric', precision: 10, scale: 2, default: 0, nullable: true },
+    payment_timeout_minutes: { type: 'int', default: 15, nullable: true },
     mp_access_token: { type: 'varchar', nullable: true },
     mp_refresh_token: { type: 'varchar', nullable: true },
     mp_user_id: { type: 'varchar', nullable: true },
