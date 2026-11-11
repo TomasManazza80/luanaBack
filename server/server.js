@@ -37,6 +37,7 @@ app.get('/', (req, res) => {
 app.use('/api/public', publicRoutes);
 app.post('/webhooks/mercadopago', publicController.handleMercadoPagoWebhook);
 app.post('/webhook/mercadopago', publicController.handleMercadoPagoWebhook);
+app.post('/api/webhooks/mercadopago', publicController.handleMercadoPagoWebhook);
 // app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 

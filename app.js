@@ -142,12 +142,14 @@ Promise.all([
         console.error("Error loading kinesio/public/upload modules:", err);
     });
 
-app.post('/webhooks/mercadopago', (req, res, next) => {
+const mpWebhookHandler = (req, res, next) => {
     if (app.locals.handleMercadoPagoWebhook) {
         return app.locals.handleMercadoPagoWebhook(req, res, next);
     }
     return res.status(200).send('OK');
-});
+};
+app.post('/webhooks/mercadopago', mpWebhookHandler);
+app.post('/api/webhooks/mercadopago', mpWebhookHandler);
 
 app.use('/api/kinesio', (req, res, next) => {
     if (kinesioRouter) {

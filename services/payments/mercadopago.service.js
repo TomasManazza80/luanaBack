@@ -31,12 +31,12 @@ class MercadoPagoService {
           userId: payload.metadata.userId
         },
         back_urls: {
-          success: `${process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://localhost:5173'}/checkout/success`,
-          failure: `${process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://localhost:5173'}/checkout/failure`,
-          pending: `${process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://localhost:5173'}/checkout/pending`,
+          success: `${(process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://luanstudiosf.com').replace(/\/$/, '')}/checkout/success`,
+          failure: `${(process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://luanstudiosf.com').replace(/\/$/, '')}/checkout/failure`,
+          pending: `${(process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://luanstudiosf.com').replace(/\/$/, '')}/checkout/pending`,
         },
         auto_return: 'approved',
-        notification_url: `${process.env.API_URL || 'https://tu-ngrok-url.com'}/api/payment/webhook`,
+        notification_url: `${(process.env.BACKEND_URL || process.env.API_URL || 'https://luanaback.onrender.com').replace(/\/$/, '')}/api/mercadopago/webhook`,
       };
 
       console.log("Sending MP body:", JSON.stringify(body, null, 2));

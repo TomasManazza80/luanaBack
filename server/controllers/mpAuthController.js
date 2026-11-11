@@ -7,7 +7,7 @@ export const getAuthUrl = async (req, res) => {
     try {
         const professionalId = req.user.userId;
         const clientId = process.env.MP_CLIENT_ID;
-        const backendUrl = process.env.PUBLIC_BACKEND_URL || 'http://localhost:10000';
+        const backendUrl = (process.env.BACKEND_URL || process.env.PUBLIC_BACKEND_URL || 'https://luanaback.onrender.com').replace(/\/$/, '');
         const redirectUri = `${backendUrl}/api/kinesio/mp-callback`;
 
         if (!clientId) {
@@ -28,7 +28,7 @@ export const handleCallback = async (req, res) => {
         const { code, state } = req.query; // state is professionalId
         const clientId = process.env.MP_CLIENT_ID;
         const clientSecret = process.env.MP_CLIENT_SECRET;
-        const backendUrl = process.env.PUBLIC_BACKEND_URL || 'http://localhost:10000';
+        const backendUrl = (process.env.BACKEND_URL || process.env.PUBLIC_BACKEND_URL || 'https://luanaback.onrender.com').replace(/\/$/, '');
         const redirectUri = `${backendUrl}/api/kinesio/mp-callback`;
 
         if (!code || !state) {

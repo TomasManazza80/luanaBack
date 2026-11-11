@@ -337,8 +337,8 @@ export const createPublicAppointment = async (req, res) => {
                 const client = new MercadoPagoConfig({ accessToken: mpAccessToken, options: { timeout: 8000 } });
                 const preference = new Preference(client);
 
-                const backendUrl = (process.env.PUBLIC_BACKEND_URL || process.env.API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
-                const frontendUrl = (process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+                const backendUrl = (process.env.BACKEND_URL || process.env.PUBLIC_BACKEND_URL || process.env.API_URL || 'https://luanaback.onrender.com').replace(/\/$/, '');
+                const frontendUrl = (process.env.VITE_PUBLIC_URL || process.env.FRONTEND_URL || 'https://luanstudiosf.com').replace(/\/$/, '');
                 const formattedDateTime = fechaHoraMoment.format('DD/MM/YYYY HH:mm');
 
                 const prefData = await preference.create({
@@ -360,7 +360,7 @@ export const createPublicAppointment = async (req, res) => {
                             pending: `${frontendUrl}/turnos/pendiente`
                         },
                         auto_return: 'approved',
-                        notification_url: `${backendUrl}/api/public/webhook/mercadopago?prof_id=${prof.id}`,
+                        notification_url: `${backendUrl}/api/webhooks/mercadopago?prof_id=${prof.id}`,
                         expires: true,
                         expiration_date_from: now.toISOString(),
                         expiration_date_to: expiresAt.toISOString()

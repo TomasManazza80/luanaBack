@@ -10,14 +10,16 @@ class VexorService {
     try {
       // Vexor requiere un payload con monto, descripción, etc.
       // Aquí estamos simulando la estructura esperada por la pasarela.
+      const backendUrl = (process.env.BACKEND_URL || process.env.API_URL || 'https://luanaback.onrender.com').replace(/\/$/, '');
+      const frontendUrl = (process.env.FRONTEND_URL || process.env.VITE_PUBLIC_URL || 'https://luanstudiosf.com').replace(/\/$/, '');
       const response = await axios.post(
         `${this.apiUrl}/payments`,
         {
           amount: payload.amount,
           description: payload.description,
           metadata: payload.metadata,
-          webhook_url: `${process.env.API_URL || 'http://localhost:10000'}/api/payment/webhook`,
-          return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success`,
+          webhook_url: `${backendUrl}/api/mercadopago/webhook`,
+          return_url: `${frontendUrl}/checkout/success`,
         },
         {
           headers: { Authorization: `Bearer ${this.apiKey}` },

@@ -12,6 +12,9 @@ const createPreference = async (createPaymentDto, orderId) => {
     access_token: ACCESS_TOKEN,
   });
 
+  const frontendUrl = String(FONT_URL || 'https://luanstudiosf.com').replace(/\/$/, '');
+  const backendUrl = (process.env.BACKEND_URL || process.env.API_URL || 'https://luanaback.onrender.com').replace(/\/$/, '');
+
   const preferenceData = {
     items: [
       {
@@ -22,11 +25,12 @@ const createPreference = async (createPaymentDto, orderId) => {
       },
     ],
     back_urls: {
-      success: FONT_URL + '/pagoExitoso',
-      failure: FONT_URL + '/pago-fallido',
-      pending: FONT_URL + '/pago-pendiente',
+      success: frontendUrl + '/pagoExitoso',
+      failure: frontendUrl + '/pago-fallido',
+      pending: frontendUrl + '/pago-pendiente',
     },
     auto_return: 'approved',
+    notification_url: `${backendUrl}/payment/webhook`,
     external_reference: String(orderId),
   };
 
